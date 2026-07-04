@@ -1,0 +1,86 @@
+import json
+
+# Sample dat
+# For each prompt, please spcify the returned type you want.
+prompts = [
+    "How many virtual networks nodes allow port 26? Return only the number.",
+    "How many VM nodes are in the graph? Return only the number.",
+    "How many links exist in the graph? Return only the number.",
+    "Show the first ten VM nodes ordered by name in descending order. Return a list with node 'name'.",
+    "Show first five VM type nodes by their name and their 'osType'. Return a table with header ['VM name', 'OS type'].",
+    "Count VM type nodes by 'osType'. Return a table with header ['OS type', 'Count'].",
+    "How many network interfaces nodes have properties 'virtualnetworks' as 'Subnet-1'. Return only the number",
+    "Color all nodes with type 'networksecuritygroups' purple. Return the networkx graph object.",
+    "Find the node id with max degree and min degree. Return a list with node id.",
+
+    # 8 medium ones
+    "How many nodes are there have links to network security groups nodes? Return only the number.",
+    "How many isolated nodes without any links exist in the graph? Return only the number.",
+    "Find all nodes that can be connected to virtual networks nodes with 'addressPrefixes' as '10.0.0.1' and 'port' as 26. Return the node 'name' in a list.",
+    "With all virtual networks nodes that have name 'Subnet-2', list the top five node degrees. Return a list of assorted degree.",
+    "How many unique nodes have edges to network security groups nodes with 'port' 23? Return only the number.",
+    "Show me the unique 'addressPrefixes' for virtual networks nodes and the number of nodes per prefix. Sort them based on number of nodes. Return a table without headers.",
+    "List all of network security groups nodes with protocol 'TCP'. Return a list with node 'name'.",
+    "Cut the graph into two parts such that the number of virtual networks nodes between the cuts is same. Color two parts with red and blue. Return the networkx graph object.",
+
+    # 6 hard ones
+    "How many nodes except from type 'networksecuritygroups' have more than ten links in the graph? Return only the number.",
+    "Extract all VM type nodes with OS type as 'linux' and their connected nodes with links. Return the new graph.",
+    "Count network security groups nodes that are related to inbound traffic. Return only the number.",
+
+]
+
+answers=[
+    # 9 easy ones
+    "\ndef ground_truth_process_graph(graph_data):\n    count = 0\n    for node, attributes in graph_data.nodes(data=True):\n        if attributes['type'] == 'virtualnetworks' and attributes['properties']['port'] == 26:\n            count += 1\n    return_object = {\n        'type': 'text',\n        'data': str(count)\n    }\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    vm_nodes = [node for node, data in graph_data.nodes(data=True) if data['type'] == 'virtualmachines']\n    return_object = {\n        'type': 'text',\n        'data': len(vm_nodes)\n    }\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    num_links = len(graph_data.edges())\n    return_object = {\n        'type': 'text',\n        'data': str(num_links)\n    }\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    vm_nodes = [(node, data) for node, data in graph_data.nodes(data=True) if data['type'] == 'virtualmachines']\n    vm_nodes_sorted = sorted(vm_nodes, key=lambda x: x[1]['name'], reverse=True)\n    return_object = {'type': 'list', 'data': [node[1]['name'] for node in vm_nodes_sorted[:10]]}\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    vm_nodes = []\n    for node, data in graph_data.nodes(data=True):\n        if data['type'] == 'virtualmachines':\n            vm_nodes.append([data['name'], data['properties']['osType']])\n        if len(vm_nodes) == 5:\n            break\n    return_object = {\n        'type': 'table',\n        'data': [['VM name', 'OS type']] + vm_nodes\n    }\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    # Initialize the count dictionary\n    count_dict = {}\n\n    # Iterate through each node in the graph\n    for node in graph_data.nodes(data=True):\n        # If the node type is 'virtualmachines', increase the count for its 'osType'\n        if node[1].get('type') == 'virtualmachines':\n            os_type = node[1]['properties'].get('osType')\n            count_dict[os_type] = count_dict.get(os_type, 0) + 1\n\n    # Convert the dictionary to a table (list of lists)\n    table = [['OS type', 'Count']] + [[k, v] for k, v in count_dict.items()]\n\n    return {'type': 'table', 'data': table}",
+    "\ndef ground_truth_process_graph(graph_data):\n    count = 0\n    for node in graph_data.nodes(data=True):\n        if node[1]['type'] == 'Networkinterfaces' and 'virtualnetworks' in node[1]['properties']:\n            if node[1]['properties']['virtualnetworks'] == 'Subnet-1':\n                count += 1\n    return_object = {\n        'type': 'text',\n        'data': str(count)\n    }\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    for node in graph_data.nodes(data=True):\n        if node[1]['type'] == 'networksecuritygroups':\n            node[1]['color'] = 'purple'\n    return_object = {\n        'type': 'graph',\n        'data': graph_data\n    }\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    # Getting a dictionary with nodes and their degrees\n    node_degrees = dict(graph_data.degree())\n    \n    # Finding the node with max degree\n    max_degree_node = max(node_degrees, key=node_degrees.get)\n    \n    # Finding the node with min degree\n    min_degree_node = min(node_degrees, key=node_degrees.get)\n\n    # Building the return_object\n    return_object = {\n        'type': 'list',\n        'data': [max_degree_node, min_degree_node]\n    }\n    \n    return return_object",
+
+    # 8 medium ones
+    "\ndef ground_truth_process_graph(graph_data):\n    count = 0\n    for node in graph_data.nodes(data=True):\n        if node[1]['type'] == 'networksecuritygroups':\n            count += graph_data.degree(node[0])\n    return_object = {'type': 'text', 'data': str(count)}\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    isolated_nodes = list(nx.isolates(graph_data))\n    return_object = {'type': 'text', 'data': str(len(isolated_nodes))}\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    connected_nodes = []\n    for node, attributes in graph_data.nodes(data=True):\n        if attributes['type'] == 'virtualnetworks' and attributes['properties']['addressPrefixes'] == '10.0.0.1' and attributes['properties']['port'] == 26:\n            connected_nodes.extend([neighbour for neighbour in graph_data.neighbors(node)])\n    node_names = [graph_data.nodes[node]['name'] for node in connected_nodes]\n    return_object = {'type': 'list', 'data': node_names}\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    node_degrees = []\n    for node in graph_data.nodes(data=True):\n        if node[1]['type'] == 'virtualnetworks' and node[1]['name'] == 'Subnet-2':\n            degree = graph_data.degree[node[0]]\n            node_degrees.append(degree)\n    node_degrees.sort(reverse=True)\n    top_five_node_degrees = node_degrees[:5]\n    return_object = {\n        'type': 'list',\n        'data': top_five_node_degrees\n    }\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    count = 0\n    for i in graph_data.nodes(data=True):\n        if i[1]['type'] == 'networksecuritygroups' and i[1]['properties']['port'] == 23:\n            count += len(list(graph_data.edges(i[0])))\n    return_object = {'type': 'text', 'data': count}\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    virtualnetworks_nodes = [n for n, d in graph_data.nodes(data=True) if d.get('type')=='virtualnetworks']\n    address_prefixes_count = {}\n    for node in virtualnetworks_nodes:\n        prefix = graph_data.nodes[node].get('properties', {}).get('addressPrefixes')\n        if prefix is not None:\n            if prefix in address_prefixes_count:\n                address_prefixes_count[prefix] += 1\n            else:\n                address_prefixes_count[prefix] = 1\n    sorted_prefixes_count = sorted(address_prefixes_count.items(), key=lambda x: x[1], reverse=True)\n    return_object = {\n        'type': 'table',\n        'data': sorted_prefixes_count\n    }\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    # Initialize an empty list to store the names of nodes with 'type'=='networksecuritygroups' and 'properties' includes 'protocol'=='TCP'\n    node_list = []\n\n    # Iterate through all nodes in the graph\n    for node in graph_data.nodes(data=True):\n\n        # If the 'type' of the node is 'networksecuritygroups' and 'protocol' of 'properties' is 'TCP', append the 'name' of the node to the node_list\n        if node[1]['type'] == 'networksecuritygroups' and node[1]['properties']['protocol'] == 'TCP':\n            node_list.append(node[1]['name'])\n\n    return_object = {'type': 'list', 'data': node_list}\n\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n\n    # Initialize color mapping\n    color_map = []\n\n    # Initialize virtual networks counter\n    vn_counter = 0\n\n    # Traverse the graph\n    for node in graph_data:\n\n        # Check if node type is 'virtualnetworks'\n        if graph_data.nodes[node]['type'] == 'virtualnetworks':\n            vn_counter += 1\n\n            # Color nodes according to the counter\n            if vn_counter % 2 == 0:\n                color_map.append('red')\n            else:\n                color_map.append('blue')\n        else:\n            color_map.append('black')\n\n    # Assign color to each node\n    nx.set_node_attributes(graph_data, {node: color for node, color in zip(graph_data, color_map)}, 'color')\n\n    return_object = {\n        'type': 'graph',\n        'data': graph_data\n    }\n\n    return return_object",
+
+    # 4 hard ones
+    "\ndef ground_truth_process_graph(graph_data):\n    count = 0\n    for node in graph_data.nodes():\n        if graph_data.nodes[node]['type'] != 'networksecuritygroups' and len(list(graph_data.neighbors(node))) > 10:\n            count += 1\n    return {'type': 'text', 'data': str(count)}",
+    "\ndef ground_truth_process_graph(graph_data):\n    subgraph_nodes = []\n    for node, attrs in graph_data.nodes(data=True):\n        if attrs['type'] == 'virtualmachines' and attrs['properties']['osType'] == 'linux':\n            subgraph_nodes.append(node)\n            subgraph_nodes.extend(list(graph_data.neighbors(node)))\n    subgraph = graph_data.subgraph(subgraph_nodes)\n    return_object = {\n        'type': 'graph',\n        'data': subgraph\n    }\n    return return_object",
+    "\ndef ground_truth_process_graph(graph_data):\n    count = 0\n    for node, data in graph_data.nodes(data=True):\n        if data['type'] == 'networksecuritygroups' and 'InBound' in data['name']:\n            count += 1\n    return_object = {\n        'type': 'text',\n        'data': str(count)\n    }\n    return return_object",
+
+]
+
+
+# File to save the jsonl
+output_file = 'crg-finetune.jsonl'
+
+# Prepare data in the required format
+data = []
+for prompt, answer in zip(prompts, answers):
+    entry = {
+        "messages": [
+            {"role": "system", "content": "You are a system to help network management"},
+            {"role": "user", "content": prompt},
+            {"role": "assistant", "content": answer},
+            {"role": "system", "content": "You are a system to help network management"},
+            {"role": "user", "content": prompt},
+            {"role": "assistant", "content": answer}
+        ]
+    }
+    data.append(entry)
+
+# Write data to jsonl file
+with open(output_file, 'w') as f:
+    for entry in data:
+        f.write(json.dumps(entry) + '\n')
+
+print(f"Data successfully written to {output_file}")

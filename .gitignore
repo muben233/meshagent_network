@@ -1,0 +1,35 @@
+# Secrets and local environment
+.env
+*.env
+**/.env
+**/*.env
+
+# Python environments and caches
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local assistant/tooling state
+.claude/
+.codex/
+.agents/
+
+# Large local model/cache artifacts
+models/
+**/.cache/
+**/cache/
+
+# Temporary/generated local working files
+tmp/
+*.log
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*.docx

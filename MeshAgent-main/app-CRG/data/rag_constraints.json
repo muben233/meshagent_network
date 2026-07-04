@@ -1,0 +1,77 @@
+[
+  {
+    "id": "1",
+    "label": "graph, type",
+    "constraint": "The data is represented as a networkx graph made up of cloud resource graph in Azure network."
+  },
+  {
+    "id": "2",
+    "label": "node, type",
+    "constraint": "node 'type' can be 'virtualmachines', 'Networkinterfaces', 'virtualnetworks', 'networksecuritygroups'. "
+  },
+  {
+    "id": "3",
+    "label": "node, name",
+    "constraint": "node 'name' is a string depending on its 'type'. "
+  },
+  {
+    "id": "4",
+    "label": "node, properties, virtualmachines",
+    "constraint": "when 'type'=='virtualmachines', 'properties' has 'osType', 'Networkinterfaces'. when 'type'=='Networkinterfaces', 'properties' has 'virtualnetworks', 'Networkinterfaces'. when 'type'=='virtualnetworks', 'properties' has 'provisioningState', 'addressPrefixes', 'port'. when 'type'=='networksecuritygroups', 'properties' has 'protocol', 'addressPrefixes', 'port', 'priority'."
+  },
+  {
+    "id": "5",
+    "label": "node, properties, Networkinterfaces",
+    "constraint": "when 'type'=='Networkinterfaces', 'properties' has 'virtualnetworks', 'Networkinterfaces'. when 'type'=='virtualnetworks', 'properties' has 'provisioningState', 'addressPrefixes', 'port'. when 'type'=='networksecuritygroups', 'properties' has 'protocol', 'addressPrefixes', 'port', 'priority'."
+  },
+  {
+    "id": "6",
+    "label": "node, properties, virtualnetworks",
+    "constraint": "when 'type'=='virtualnetworks', 'properties' has 'provisioningState', 'addressPrefixes', 'port'. when 'type'=='networksecuritygroups', 'properties' has 'protocol', 'addressPrefixes', 'port', 'priority'."
+  },
+  {
+    "id": "7",
+    "label": "node, properties, networksecuritygroups",
+    "constraint": "when 'type'=='networksecuritygroups', 'properties' has 'protocol', 'addressPrefixes', 'port', 'priority'."
+  },
+  {
+    "id": "8",
+    "label": "edge, virtualmachines, Networkinterfaces",
+    "constraint": "'virtualmachines' type node can be connected to 'Networkinterfaces' type node if they have the same value for 'Networkinterfaces' in properties."
+  },
+  {
+    "id": "9",
+    "label": "edge, Networkinterfaces, virtualnetworks",
+    "constraint": "'Networkinterfaces' type node can be connected to  'virtualnetworks' type node if they have the same value for 'addressPrefixes' in properties."
+  },
+  {
+    "id": "10",
+    "label": "edge, virtualnetworks, networksecuritygroups",
+    "constraint": "'virtualnetworks' type node can be connected to  'networksecuritygroups' type node if they have the same value for 'addressPrefixes' and 'port' in properties."
+  },
+  {
+    "id": "11",
+    "label": "node, VM",
+    "constraint": "VM node refers to 'virtualmachines' type node in the graph."
+  },
+  {
+    "id": "12",
+    "label": "node, network interfaces",
+    "constraint": "network interfaces node refers to 'Networkinterfaces' type node in the graph."
+  },
+  {
+    "id": "13",
+    "label": "node, virtual networks",
+    "constraint": "virtual networks node refers to 'virtualnetworks' type node in the graph."
+  },
+  {
+    "id": "14",
+    "label": "node, network security groups",
+    "constraint": "network security groups node refers to 'networksecuritygroups' type node in the graph."
+  },
+  {
+    "id": "15",
+    "label": "inbound, traffic",
+    "constraint": "When checking inbound traffic, you need to check if 'InBound' is contained as part of node's 'name'."
+  }
+]

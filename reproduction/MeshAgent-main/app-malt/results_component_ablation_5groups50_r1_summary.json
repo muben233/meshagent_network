@@ -1,0 +1,42 @@
+[
+  {
+    "experiment": "No-Constraint Single-Pass",
+    "kind": "baseline",
+    "correct": 15,
+    "total": 50,
+    "accuracy": 0.3,
+    "output": "results_component_ablation_5groups50_r1_No_Constraint_Single_Pass.json"
+  },
+  {
+    "experiment": "All-Constraints Single-Pass",
+    "kind": "constraint_ablation",
+    "correct": 41,
+    "total": 50,
+    "accuracy": 0.82,
+    "output": "results_component_ablation_5groups50_r1_All_Constraints_Single_Pass.json"
+  },
+  {
+    "experiment": "Old-QS-Constraints Single-Pass",
+    "kind": "constraint_ablation",
+    "correct": 39,
+    "total": 50,
+    "accuracy": 0.78,
+    "output": "results_component_ablation_5groups50_r1_Old_QS_Constraints_Single_Pass.json"
+  },
+  {
+    "experiment": "Hybrid-QS-Constraints Single-Pass",
+    "kind": "constraint_ablation",
+    "correct": 43,
+    "total": 50,
+    "accuracy": 0.86,
+    "output": "results_component_ablation_5groups50_r1_Hybrid_QS_Constraints_Single_Pass.json"
+  },
+  {
+    "experiment": "QS-CoT-Debug",
+    "kind": "cot_debug_ablation",
+    "correct": 38,
+    "total": 50,
+    "accuracy": 0.76,
+    "output": "results_component_ablation_5groups50_r1_QS_CoT_Debug.json"
+  }
+]

@@ -1,0 +1,30 @@
+{
+  "experiment": "Full+EnhancedValidationSelfRepair+EnhancedValidationOffline",
+  "output": "results_validator_seed51_80_r1_constraint_validators_offline.json",
+  "total_attempts": 30,
+  "raw_correct": 16,
+  "answered": 24,
+  "abstained": 6,
+  "correct_answered": 16,
+  "wrong_answered": 8,
+  "abstained_wrong": 6,
+  "abstained_correct": 0,
+  "raw_accuracy_before_abstention": 0.5333,
+  "total_accuracy": 0.5333,
+  "reliable_accuracy": 0.6667,
+  "abstain_rate": 0.2,
+  "abstain_accuracy": 0.7333,
+  "abstain_precision": 1.0,
+  "abstain_recall": 0.4286,
+  "critical_failed_total": 6,
+  "critical_failed_correct": 0,
+  "critical_failed_wrong": 6,
+  "warning_count": 2,
+  "reexecute_correct_mismatch": 0,
+  "critical_failure_names": {
+    "remove_packet_switch_target_absent": 3,
+    "execution": 2,
+    "contains_no_self_loop_contract": 1,
+    "remove_no_unexpected_new_nodes": 1
+  }
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "1",
+    "label": "graph, type",
+    "constraint": "The data is represented as a networkx graph made up of nodes representing virtual machines in a network."
+  },
+  {
+    "id": "2",
+    "label": "node, attribute",
+    "constraint": "Each node has attributes such as unique ip_address and one or more labels of the form key=value."
+  },
+  {
+    "id": "3",
+    "label": "node, label",
+    "constraint": "Each node has an attribute 'labels'. "
+  },
+  {
+    "id": "4",
+    "label": "node, label",
+    "constraint": "Each node has an attribute 'labels', it is a list. for example: ['app:test', 'app:prod']. "
+  },
+  {
+    "id": "5",
+    "label": "edge",
+    "constraint": "Each edge connects two nodes if there is a data connection between the virtual machines represented by the nodes."
+  },
+  {
+    "id": "6",
+    "label": "edge, attribute",
+    "constraint": "Each edge has attributes 'byte_weight', 'connection_weight' and 'packet_weight' which are represented as ratios of the total number of bytes, connections and packets of the entire network."
+  },
+  {
+    "id": "7",
+    "label": "node, attribute",
+    "constraint": "Each node has an attribute 'ip_address', you should use this when checking by IP address."
+  },
+  {
+    "id": "8",
+    "label": "node, add",
+    "constraint": "Adding new nodes need to consider edges."
+  },
+  {
+    "id": "9",
+    "label": "node, remove",
+    "constraint": "There should not be any nodes in the graph that are not connected to any other nodes."
+  },
+  {
+    "id": "10",
+    "label": "edge, remove",
+    "constraint": "There should not be any edges in the graph that are not connected to any other nodes."
+  }
+]

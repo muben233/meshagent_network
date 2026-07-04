@@ -1,0 +1,204 @@
+import os
+import openai
+from dotenv import load_dotenv
+import json
+import pandas as pd
+import inspect
+import re
+from langchain.llms import VertexAI
+import google.generativeai as genai
+from langchain.prompts import PromptTemplate, FewShotPromptTemplate
+from langchain.chains import LLMChain, LLMMathChain, TransformChain, SequentialChain
+from langchain.callbacks import get_openai_callback
+from langchain.agents import ZeroShotAgent, Tool, AgentExecutor, load_tools
+# For GPT3.5 or GPT4
+from langchain.chat_models import AzureChatOpenAI
+# For other models: text-davinci-003
+from langchain.llms import AzureOpenAI
+from azure.identity import DefaultAzureCredential
+# Get the Azure Credential
+credential = DefaultAzureCredential()
+
+# Set the API type to `azure_ad`
+os.environ["OPENAI_API_TYPE"] = "azure"
+# Set the API_KEY to the token from the Azure credential
+os.environ["OPENAI_API_KEY"] = credential.get_token("https://cognitiveservices.azure.com/.default").token
+# Set the ENDPOINT
+# os.environ["AZURE_OPENAI_ENDPOINT"] = "https://ztn-oai-fc.openai.azure.com/"
+
+# Load environ variables from .env, will not override existing environ variables
+load_dotenv()
+
+OPENAI_API_TYPE = os.getenv('OPENAI_API_TYPE')
+OPENAI_API_BASE = os.getenv('OPENAI_API_BASE')
+
+# For GPT in Azure
+llm = AzureChatOpenAI(
+    openai_api_type=OPENAI_API_TYPE,
+    openai_api_base=OPENAI_API_BASE,
+    openai_api_version="2023-12-01-preview",
+    deployment_name='gpt-4-32k',
+    model_name='gpt-4-32k',
+    temperature=0,
+    max_tokens=4000,
+    )
+#
+# genai.configure(api_key=os.environ['GOOGLE_API_KEY'])
+# llm = VertexAI(model_name="gemini-pro",
+#                max_output_tokens=2000,
+#                temperature=0.8)
+
+# For baseline and query-specific constraint only:
+constraint_prefix = """
+Generate the Python code needed to process the network graph to answer the user query. 
+The Python code you generate should be in the form of a function named process_graph that takes a single input argument graph_data (networkx graph) and returns a single object return_object. 
+The return_object will be a JSON object with two keys, 'type' and 'data'. The 'type' key should indicate the output format depending on the user query. 
+If the output type is 'text' then the 'data' key should be convert to a string. 
+If the output type is 'list' then the 'data' key should contain a list of items.
+If the output type is 'table' then the 'data' key should contain a list of lists where each list represents a row in the table. 
+If the output type is 'graph' then the 'data' key should be a networkx graph.
+
+All of your output should only contain the defined function, and display in a Python code block.
+"""
+
+constraint_suffix = """Begin! Strictly generate Python code with the following format:
+
+Answer:
+```python
+${{Code that will answer the user question or request}}
+```
+Question: {input}
+Constraints: {constraints}
+"""
+
+constraint_prompt = PromptTemplate(
+    input_variables=["input", "constraints"],
+    template=constraint_prefix + constraint_suffix
+)
+
+constraint_only_chain = LLMChain(llm=llm, prompt=constraint_prompt)
+
+
+# For summary of steps
+summary_prefix = """
+You should behave with chain of thoughts, the first answer is three summarized steps you need to take to answer the user query.
+
+The data is represented as a networkx graph made up of nodes representing virtual machines in a network with attributes such as unique IP address and one or more labels of the form key=value.
+The graph also has edges and each edge connects two nodes if there is a data connection between the virtual machines represented by the nodes. Each edge has attributes such a byte weight, connection weight and packet weight which are represented as ratios of the total number of bytes, connections and packets of the entire network.
+"""
+
+summary_suffix = """Begin! Strictly generate steps with the following string format:
+
+'
+Step 1: the first step in your chain of thoughts.
+Step 2: the second step in your chain of thoughts.
+Step 3: the third step in your chain of thoughts.
+'
+
+Question: {input}
+"""
+
+summary_gen_prompt = PromptTemplate(
+    input_variables=["input"],
+    template=summary_prefix + summary_suffix
+)
+
+summary_gen_chain = summary_gen_prompt | llm
+
+# CoT only
+cot_prefix = """
+For the given breakdown step, generate the Python code needed to process the network graph to answer the user question or request. 
+If there is code available from the last step, you should expand the new code based on it. If there is no code available, just generate from scratch.
+
+The network graph data is stored as a networkx graph object, the Python code you generate should be in the form of a function named process_graph that takes a single input argument graph_data and returns a single object return_object. The input argument graph_data will be a networkx graph object with nodes and edges.
+
+The return_object will be a JSON object with two keys, 'type' and 'data'. The 'type' key should indicate the output format depending on the user query or request. It should be one of 'text', 'list', 'table' or 'graph'.
+The 'data' key should contain the data needed to render the output. If the output type is 'text' then the 'data' key should contain a string. If the output type is 'list' then the 'data' key should contain a list of items.
+If the output type is 'table' then the 'data' key should contain a list of lists where each list represents a row in the table.If the output type is 'graph' then the 'data' key should contain a networkx graph.
+"""
+
+cot_suffix = """Begin! Do NOT include any text after the code block. Do NOT use extra libraries if unnecessary. Strictly generate Python code with the following format:
+
+Answer:
+```python
+${{Code that will answer the user question or request}}
+```
+Question: {input}
+Constraints: {constraints}
+Step: {step}
+Code_from_last_step: {code}
+"""
+
+cot_prompt = PromptTemplate(
+    input_variables=["input", "constraints", "step", "code"],
+    template=cot_prefix+cot_suffix
+)
+
+cot_only_chain = cot_prompt | llm
+
+
+# CoT plus tools
+cot_tool_prefix = """
+For the given breakdown step, generate the Python code needed to process the network graph to answer the user question or request. 
+If there is code available from the last step, you should expand the new code based on it. If there is no code available, just generate from scratch. 
+If a new step is not needed, just use the same code from last step.
+Before generating, check if the extracted tool is useful for the current query, if it is, then you should try to leverage it.
+
+Strictly follow the data input and out format:
+The Python code you generate should be in the form of a function named process_graph that takes a single input argument graph_data (networkx graph object) and returns a single object return_object. 
+
+The return_object will be a JSON object with two keys, 'type' and 'data'. The 'type' key should indicate the output format depending on the user query or request. It should be one of 'text', 'list', 'table' or 'graph'.
+The 'data' key should contain the data needed to render the output. If the output type is 'text' then the 'data' key should contain a string. If the output type is 'list' then the 'data' key should contain a list of items.
+If the output type is 'table' then the 'data' key should contain a list of lists where each list represents a row in the table.If the output type is 'graph' then the 'data' key should contain a networkx graph.
+"""
+
+cot_tool_suffix = """Begin! Your code should only contain the process_graph(). 
+Note: do NOT use extra libraries like 'defaultdict'. 
+Strictly generate Python code with the ```python``` code block:
+
+Answer:
+```python
+${{Code that will answer the user question or request}}
+```
+
+Question: {input}
+Constraints: {constraints}
+Step: {step}
+Code_from_last_step: {code}
+Extracted tool: {tool}
+"""
+
+cot_plus_tool_prompt = PromptTemplate(
+    input_variables=["input", "constraints", "step", "code", "tool"],
+    template=cot_tool_prefix+cot_tool_suffix
+)
+
+cot_plus_tool_chain = cot_plus_tool_prompt | llm
+
+
+# For self-debug
+debug_prefix = """
+Generate the Python code needed to process the network graph to answer the user query. 
+The Python code you generate should be in the form of a function named process_graph that takes a single input argument graph_data (networkx graph) and returns a single object return_object. 
+The return_object will be a JSON object with two keys, 'type' and 'data'. The 'type' key should indicate the output format depending on the user query. 
+If the output type is 'text' then the 'data' key should be convert to a string. 
+If the output type is 'list' then the 'data' key should contain a list of items.
+If the output type is 'table' then the 'data' key should contain a list of lists where each list represents a row in the table. 
+If the output type is 'graph' then the 'data' key should be a networkx graph.
+
+All of your output should only contain the defined function, and display with the ```python``` code block.
+"""
+
+debug_suffix = """Please debug the following code you generated before:
+Question: {input}
+Constraints: {constraints}
+Code: {code}
+Error: {error}
+"""
+
+self_debug_prompt = PromptTemplate(
+    input_variables=["input", "constraints", "code", "error"],
+    template=debug_prefix + debug_suffix
+)
+
+pySelfDebugger = LLMChain(llm=llm, prompt=self_debug_prompt)

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "1",
+    "description": "calculate maximal cliques.",
+    "tool": "def process_graph(graph_data):\n    return_object = {\n        'type': 'text',\n        'data': len(list(nx.find_cliques(graph_data)))\n    }\n    return return_object"
+  },
+  {
+    "id": "2",
+    "description": "when you check node degrees (include max degree and min degree).",
+    "tool": "degrees = [d for n, d in graph_data.degree()]"
+  }
+]

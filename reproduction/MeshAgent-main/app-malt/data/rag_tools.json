@@ -1,0 +1,22 @@
+[
+  {
+    "id": "1",
+    "description": "graph that contains all AGG_BLOCK",
+    "tool": "\ndef process_graph(graph_data):\n    # Filter nodes and edges\n    filtered_nodes = [n for n, d in graph_data.nodes(data=True) if 'EK_AGG_BLOCK' in d['type']]\n    filtered_edges = [(u, v, d) for u, v, d in graph_data.edges(data=True) if d['type'] == 'RK_CONTAINS' and u in filtered_nodes or v in filtered_nodes]\n\n    # Create a new graph with the filtered nodes and edges\n    new_graph = nx.DiGraph()\n    new_graph.add_nodes_from(filtered_nodes)\n    new_graph.add_edges_from(filtered_edges)\n\n    # Return the graph object\n    return_object = {\n        'type': 'graph',\n        'data': new_graph\n    }\n    return return_object"
+  },
+  {
+    "id": "2",
+    "description": "bandwidth on each SUPERBLOCK",
+    "tool": "\ndef process_graph(graph_data):\n    \n    super_blocks = [node for node in graph_data.nodes if 'EK_SUPERBLOCK' in graph_data.nodes[node]['type']]\n    bandwidths = []\n\n    for super_block in super_blocks:\n        packet_switches = [node for node in graph_data.successors(super_block) if 'EK_PACKET_SWITCH' in graph_data.nodes[node]['type']]\n        total_bandwidth = 0\n\n        for packet_switch in packet_switches:\n            ports = [node for node in graph_data.successors(packet_switch) if 'EK_PORT' in graph_data.nodes[node]['type']]\n\n            for port in ports:\n                total_bandwidth += graph_data.nodes[port]['physical_capacity_bps'] / 1e6  # Convert to Mbps\n\n        bandwidths.append([super_block, total_bandwidth])\n\n    return_object = {\n        'type': 'table',\n        'data': [['SUPERBLOCK', 'Bandwidth']] + bandwidths\n    }\n\n    return return_object"
+  },
+  {
+    "id": "3",
+    "description": "capacity on a packet switch example",
+    "tool": "ports = [n for n in graph_data.neighbors(current_packet_switch) if 'EK_PORT' in graph_data.nodes[n]['type']]\n\ttotal_capacity = sum([graph_data.nodes[port]['physical_capacity_bps'] for port in ports])"
+  },
+  {
+    "id": "4",
+    "description": "Balance capacity on Chassis example",
+    "tool": "\ndef process_graph(graph_data):\n    # Remove packet switch 'ju1.a1.m1.s2c4' from Chassis c4\n    packet_switch_to_remove = 'ju1.a1.m1.s2c4'\n    chassis_to_balance = 'c4'\n    if packet_switch_to_remove in graph_data.nodes():\n        graph_data.remove_node(packet_switch_to_remove)\n\n    # Find all Chassis nodes\n    chassis_nodes = [n for n, attr in graph_data.nodes(data=True) if 'EK_CHASSIS' in attr['type']]\n\n    # Calculate the total capacity for each Chassis\n    chassis_capacity = {}\n    for chassis in chassis_nodes:\n        packet_switches = [n for n in graph_data.neighbors(chassis) if 'EK_PACKET_SWITCH' in graph_data.nodes[n]['type']]\n        total_capacity = 0\n        for packet_switch in packet_switches:\n            ports = [n for n in graph_data.neighbors(packet_switch) if 'EK_PORT' in graph_data.nodes[n]['type']]\n            for port in ports:\n                total_capacity += graph_data.nodes[port]['physical_capacity_bps']\n        chassis_capacity[chassis] = total_capacity\n\n    # Calculate the average capacity\n    average_capacity = sum(chassis_capacity.values()) / len(chassis_capacity)\n\n    # Balance the capacity between Chassis\n    for chassis in chassis_nodes:\n        if chassis_capacity[chassis] < average_capacity:\n            extra_capacity = average_capacity - chassis_capacity[chassis]\n            # Find a packet switch from another chassis with enough capacity\n            for other_chassis in chassis_nodes:\n                if other_chassis != chassis:\n                    other_packet_switches = [n for n in graph_data.neighbors(other_chassis) if 'EK_PACKET_SWITCH' in graph_data.nodes[n]['type']]\n                    for packet_switch in other_packet_switches:\n                        ports = [n for n in graph_data.neighbors(packet_switch) if 'EK_PORT' in graph_data.nodes[n]['type']]\n                        packet_switch_capacity = sum(graph_data.nodes[port]['physical_capacity_bps'] for port in ports)\n                        if packet_switch_capacity >= extra_capacity:\n                            # Move the packet switch to the current chassis\n                            graph_data.remove_edge(other_chassis, packet_switch)\n                            graph_data.add_edge(chassis, packet_switch, type='RK_CONTAINS')\n                            break\n\n    return {'type': 'graph', 'data': graph_data}"
+  }
+]

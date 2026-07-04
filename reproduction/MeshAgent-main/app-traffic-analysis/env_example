@@ -1,0 +1,15 @@
+# For LLM model
+OPENAI_API_TYPE='azure'
+OPENAI_API_VERSION='2023-05-15'
+OPENAI_API_KEY=""
+OPENAI_API_BASE=""
+
+# For Azure Search
+AZURE_SEARCH_ADMIN_KEY=""
+AZURE_SEARCH_SERVICE_ENDPOINT=""
+AZURE_SEARCH_INDEX_NAME="rag-test-copilot"
+AZURE_OPENAI_API_VERSION='2023-05-15'
+
+# For RAG index
+RAG_MALT_CONSTRAINT="app-traffic-rag-constraint"
+RAG_MALT_TOOL="app-traffic-rag-tool"

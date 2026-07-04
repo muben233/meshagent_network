@@ -1,0 +1,23 @@
+[
+  {
+    "experiment": "Original Source Full",
+    "output": "results_original_vs_selfrepair50_r3_original_OriginalSourceFull.json",
+    "total_queries": 50,
+    "runs_per_query": 3,
+    "total_attempts": 150,
+    "raw_correct": 128,
+    "answered": 150,
+    "abstained": 0,
+    "correct_answered": 128,
+    "wrong_answered": 22,
+    "abstained_wrong": 0,
+    "abstained_correct": 0,
+    "raw_accuracy_before_abstention": 0.8533,
+    "total_accuracy": 0.8533,
+    "reliable_accuracy": 0.8533,
+    "abstain_rate": 0.0,
+    "abstain_accuracy": 0.8533,
+    "abstain_precision": null,
+    "abstain_recall": 0.0
+  }
+]

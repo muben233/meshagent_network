@@ -1,0 +1,31 @@
+{
+  "experiment": "Full+EnhancedValidationOffline",
+  "output": "results_enhanced_validation50_offline.json",
+  "total_attempts": 150,
+  "raw_correct": 125,
+  "answered": 129,
+  "abstained": 21,
+  "correct_answered": 121,
+  "wrong_answered": 8,
+  "abstained_wrong": 17,
+  "abstained_correct": 4,
+  "raw_accuracy_before_abstention": 0.8333,
+  "total_accuracy": 0.8067,
+  "reliable_accuracy": 0.938,
+  "abstain_rate": 0.14,
+  "abstain_accuracy": 0.92,
+  "abstain_precision": 0.8095,
+  "abstain_recall": 0.68,
+  "critical_failed_total": 9,
+  "critical_failed_correct": 0,
+  "critical_failed_wrong": 9,
+  "warning_count": 21,
+  "reexecute_correct_mismatch": 0,
+  "critical_failure_names": {
+    "edge_type_contract": 3,
+    "node_name_attribute": 3,
+    "execution": 2,
+    "contains_hierarchy_contract": 1,
+    "expected_return_type": 1
+  }
+}

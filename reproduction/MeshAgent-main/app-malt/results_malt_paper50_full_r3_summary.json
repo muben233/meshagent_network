@@ -1,0 +1,22 @@
+[
+  {
+    "experiment": "Full MeshAgent",
+    "total_queries": 50,
+    "runs_per_query": 3,
+    "total_attempts": 150,
+    "raw_correct": 127,
+    "answered": 127,
+    "abstained": 23,
+    "correct_answered": 117,
+    "wrong_answered": 10,
+    "abstained_wrong": 13,
+    "abstained_correct": 10,
+    "raw_accuracy_before_abstention": 0.8467,
+    "total_accuracy": 0.78,
+    "reliable_accuracy": 0.9213,
+    "abstain_rate": 0.1533,
+    "abstain_accuracy": 0.8667,
+    "abstain_precision": 0.5652,
+    "abstain_recall": 0.5652
+  }
+]

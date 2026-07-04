@@ -1,0 +1,77 @@
+[
+  {
+    "id": "1",
+    "label": "graph, type",
+    "constraint": "The graph is directed and each node has a 'name' attribute to represent itself."
+  },
+  {
+    "id": "2",
+    "label": "node, type",
+    "constraint": "\nEach node has a 'type' attribute, in the format of EK_{TYPE}. This is important: 'type' must be a list, can include ['EK_SUPERBLOCK', 'EK_CHASSIS', 'EK_RACK', 'EK_AGG_BLOCK', 'EK_JUPITER', 'EK_PORT', 'EK_SPINEBLOCK', 'EK_PACKET_SWITCH', 'EK_CONTROL_POINT', 'EK_CONTROL_DOMAIN']."
+  },
+  {
+    "id": "3",
+    "label": "node, attribute",
+    "constraint": "Each node can have other attributes depending on its type."
+  },
+  {
+    "id": "4",
+    "label": "edge, type",
+    "constraint": "Each directed edge also has a 'type' attribute, include RK_CONTAINS, RK_CONTROL."
+  },
+  {
+    "id": "5",
+    "label": "relationship",
+    "constraint": "You should check relationship based on edge, check name based on node attribute."
+  },
+  {
+    "id": "6",
+    "label": "node, add",
+    "constraint": "Adding new nodes need to consider all hierarchy. For example, adding a new switch requires adding it to the corresponding jupiter, aggregation block, and domain. The name to add on each layer can be inferred from new node name string."
+  },
+  {
+    "id": "7",
+    "label": "edge, add",
+    "constraint": "When adding new nodes, you should also add edges based on their relationship with existing nodes."
+  },
+  {
+    "id": "8",
+    "label": "PORT, attribute",
+    "constraint": "Each PORT node has an attribute 'physical_capacity_bps'"
+  },
+  {
+    "id": "9",
+    "label": "PORT, name",
+    "constraint": "For example, a PORT node name is ju1.a1.m1.s2c1.p3"
+  },
+  {
+    "id": "10",
+    "label": "capacity",
+    "constraint": "When calculating capacity of a node, you need to sum the physical_capacity_bps on the PORT of each hierarchy contains in this node."
+  },
+  {
+    "id": "11",
+    "label": "node, hierarchy",
+    "constraint": "Hierarchy: CHASSIS contains PACKET_SWITCH, JUPITER contains SUPERBLOCK, SUPERBLOCK contains AGG_BLOCK, AGG_BLOCK contains PACKET_SWITCH, PACKET_SWITCH contains PORT"
+  },
+  {
+    "id": "12",
+    "label": "graph, add",
+    "constraint": "When creating a new graph, need to filter nodes and edges with attributes from the original graph."
+  },
+  {
+    "id": "13",
+    "label": "graph, update",
+    "constraint": "When update a graph, always create a graph copy, do not modify the input graph."
+  },
+  {
+    "id": "14",
+    "label": "node, attribute",
+    "constraint": "packet switch nodes also have switch location attribute 'switch_loc' in node attribute 'packet_switch_attr'."
+  },
+  {
+    "id": "15",
+    "label": "node, type",
+    "constraint": "To find node based on type, check the name and type list. For example, [node[0] == 'ju1.a1.m1.s2c1' and 'EK_PACKET_SWITCH' in node[1]['type']]."
+  }
+]

@@ -1,0 +1,28 @@
+[
+  {
+    "id": "1",
+    "description": "calculate maximal cliques.",
+    "tool": "def ground_truth_process_graph(graph_data):\\n    # Convert the graph to undirected if it is not\\n    if graph_data.is_directed():\\n        graph_data = graph_data.to_undirected()\\n        \\n    return_object = {\\n        'type': 'text',\\n        'data': str(len(list(nx.find_cliques(graph_data))))\\n    }\\n    return return_object"
+  },
+  {
+    "id": "2",
+    "description": "when you check node degrees (include max degree and min degree).",
+    "tool": "degrees = [d for n, d in graph_data.degree()]"
+  },
+  {
+    "id": "3",
+    "description": "when check if node label exists.",
+    "tool": "labels = graph_data.nodes[node]['labels']\\n        if 'app:prod' in labels:"
+  },
+  {
+    "id": "4",
+    "description": "Cut the graph into two parts such that the number of edges between the cuts is same.",
+    "tool": "def process_graph(graph_data):\n    # Convert the directed graph to an undirected graph\n    undirected_graph = graph_data.to_undirected()\n    \n    # Use Kernighan–Lin algorithm to divide the graph into two parts\n    partition = nx.algorithms.community.kernighan_lin.kernighan_lin_bisection(undirected_graph, weight='byte_weight')\n    \n    # Assign a color attribute to each node in the graph\n    for node in graph_data.nodes():\n        if node in partition[0]:\n            graph_data.nodes[node]['color'] = 'red'\n        else:\n            graph_data.nodes[node]['color'] = 'blue'\n    \n    # Return the modified networkx graph object\n    return_object = {\n        'type': 'graph',\n        'data': nx.node_link_data(graph_data)\n    }\n    return return_object"
+  },
+  {
+    "id": "5",
+    "description": "Bisect the network such that the number of nodes on either side of the cut is equal",
+    "tool": "def process_graph(graph_data):\n    # Convert the directed graph to an undirected graph\n    undirected_graph = graph_data.to_undirected()\n\n    # Use spectral partitioning to bisect the networkx graph into two equal halves\n    laplacian = nx.normalized_laplacian_matrix(undirected_graph)\n    eigvals, eigvecs = np.linalg.eig(laplacian.A)\n    partition = eigvecs[:, np.argsort(eigvals)[1]] > 0\n\n    # Assign a unique color to each of the two groups of nodes resulting from the bisection\n    for i, node in enumerate(graph_data.nodes()):\n        graph_data.nodes[node]['color'] = 'red' if partition[i] else 'blue'\n\n    # Return the modified networkx graph object with the nodes colored based on the bisection\n    return_object = {\n        'type': 'graph',\n        'data': nx.node_link_data(graph_data)\n    }\n    return return_object"
+  }
+
+]
